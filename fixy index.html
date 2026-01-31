@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fixy - Smart Text Fixer</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif; }
+
+/* ===== BODY ===== */
+body {
+    height: 100vh;
+    display: flex;
+    background: #000;
+    overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 220px;
+    height: 100vh;               /* full screen height */
+    background: #111;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 10px;          /* space around content */
+    z-index: 10;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 18px;
+    flex-shrink: 0;              /* heading never shrinks */
+}
+
+/* Buttons container near the top */
+.sidebar-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;      /* space between buttons */
+    margin-top: 10px; /* optional spacing from heading */
+}
+
+/* Buttons */
+.category-btn {
+    padding: 12px;
+    background: #222;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.category-btn:hover { background: #333; }
+.category-btn.active { background: #007bff; }
+/* ===== MAIN ===== */
+.main {
+    flex: 1;
+    position: relative;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* ===== VIDEO BG ===== */
+#bg-video {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+    transition: filter 0.6s ease;
+}
+
+.video-blur {
+    filter: blur(8px) brightness(0.6);
+}
+
+#overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: -1;
+}
+
+/* ===== SECTIONS ===== */
+.tool-section { display: none; }
+#home { display: block; }
+
+/* ===== HOME ===== */
+.home-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 20vh;
+    color: white;
+    text-align: center;
+}
+
+.home-container h1 {
+    font-size: 64px;
+    margin-bottom: 15px;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.home-tagline {
+    font-size: 24px;
+    margin-bottom: 30px;
+    text-shadow: 0 6px 20px rgba(0,0,0,0.8);
+}
+
+.home-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.home-btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    background: rgba(200,200,200,0.28);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 18px 45px rgba(0,0,0,0.6);
+    transition: 0.3s;
+}
+
+.home-btn:hover {
+    transform: scale(1.05);
+    background: rgba(220,220,220,0.4);
+}
+
+/* ===== TOOL CARDS ===== */
+.tool-section:not(#home) {
+    max-width: 900px;
+    margin: auto;
+    padding: 35px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(230,230,230,0.75), rgba(170,170,170,0.65));
+    backdrop-filter: blur(12px);
+    box-shadow: 0 35px 90px rgba(0,0,0,0.65), inset 0 1px 2px rgba(255,255,255,0.8);
+}
+
+.tool-title {
+    font-size: 26px;
+    margin-bottom: 20px;
+    color: white;
+    text-shadow: 0 6px 20px rgba(0,0,0,0.9);
+}
+
+textarea {
+    width: 100%;
+    height: 160px;
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 14px;
+    border: none;
+    resize: none;
+    background: linear-gradient(135deg, rgba(245,245,245,0.85), rgba(200,200,200,0.75));
+    color: #111;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.9);
+}
+
+textarea::placeholder {
+    color: rgba(0,0,0,0.6);
+}
+
+.output {
+    margin-top: 20px;
+    min-height: 120px;
+    padding: 15px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(245,245,245,0.85), rgba(200,200,200,0.75));
+    color: #111;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.9);
+}
+
+.action-btn {
+    margin-top: 20px;
+    padding: 14px 26px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: none;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+}
+
+.action-btn:hover { background: #0056b3; }
+
+/* ===== HOME BUTTON CIRCLE ===== */
+#homeBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;      /* increased size */
+    height: 50px;     /* increased size */
+    font-size: 24px;  /* make the emoji bigger */
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.3);
+    color: white;
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    transition: all 0.3s ease;
+
+    /* Make emoji grayscale */
+    filter: grayscale(1);
+}
+#homeBtn:hover {
+    background: rgba(255,255,255,0.5);
+    transform: scale(1.1);
+}
+/* Fade in and slide from left */
+.fade-in-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    animation: fadeInLeft 0.8s forwards;
+}
+
+@keyframes fadeInLeft {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+</style>
+</head>
+<body>
+
+<!-- VIDEO -->
+<video autoplay muted loop id="bg-video">
+    <source src="https://res.cloudinary.com/dtfqjb641/video/upload/v1769881052/document_6044274241203870484_f2mkvt.mp4" type="video/mp4">
+</video>
+<div id="overlay"></div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>Text Tools</h2>
+    <div class="sidebar-buttons">
+        <button class="category-btn" data-tool="format">Change Format</button>
+        <button class="category-btn" data-tool="clean">Clean Text</button>
+        <button class="category-btn" data-tool="ai">AI Check Pass</button>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- HOME -->
+    <div class="tool-section" id="home">
+        <div class="home-container">
+            <h1>Fixy 🤖</h1>
+            <p class="home-tagline">Your smart text fixer</p>
+            <div class="home-buttons">
+                <button class="home-btn" data-tool="format">Change Format</button>
+                <button class="home-btn" data-tool="clean">Clean Text</button>
+                <button class="home-btn" data-tool="ai">AI Check Pass</button>
+            </div>
+        </div>
+    </div>
+<!-- CHANGE FORMAT TOOL -->
+<div class="tool-section" id="format">
+  <div class="tool-title">Change Format</div>
+
+  <!-- Tone selector -->
+  <select id="toneSelect" style="margin-bottom: 15px; padding: 10px; font-size:16px; border-radius:8px;">
+    <option value="formal">Formal</option>
+    <option value="friendly">Friendly</option>
+    <option value="flirty">Flirty</option>
+    <option value="mocking">Mocking</option>
+    <option value="joking">Joking</option>
+  </select>
+
+  <textarea id="formatInput" placeholder="Paste your text here..."></textarea>
+  <button class="action-btn" id="rewriteBtn">Rewrite</button>
+  <div class="output" id="formatOutput">Output will appear here...</div>
+</div>
+    <!-- CLEAN -->
+    <div class="tool-section" id="clean">
+        <div class="tool-title">Clean Text</div>
+        <textarea placeholder="Paste your text here..."></textarea>
+        <button class="action-btn">Clean</button>
+        <div class="output">Output will appear here...</div>
+    </div>
+
+    <!-- AI -->
+    <div class="tool-section" id="ai">
+        <div class="tool-title">AI Check Pass</div>
+        <textarea placeholder="Paste your text here..."></textarea>
+        <button class="action-btn">Humanize</button>
+        <div class="output">Output will appear here...</div>
+    </div>
+
+</div>
+
+<!-- HOME BUTTON -->
+<button id="homeBtn">🏠</button>
+
+<script>
+const buttons = document.querySelectorAll('.category-btn');
+const sections = document.querySelectorAll('.tool-section');
+const video = document.getElementById('bg-video');
+const homeBtns = document.querySelectorAll('.home-btn');
+const homeBtnCircle = document.getElementById('homeBtn');
+
+function showSection(id) {
+    sections.forEach(s => {
+        s.style.display = 'none';
+        s.classList.remove('fade-in-section');
+        s.querySelectorAll('*').forEach(el => el.classList.remove('fade-in-left'));
+    });
+
+    const targetSection = document.getElementById(id);
+    targetSection.style.display = 'block';
+    targetSection.classList.add('fade-in-section');
+    targetSection.querySelectorAll('*').forEach(el => el.classList.add('fade-in-left'));
+
+    if (id !== 'home') video.classList.add('video-blur');
+    else video.classList.remove('video-blur');
+
+    homeBtnCircle.style.display = id !== 'home' ? 'flex' : 'none';
+}
+
+// Sidebar click
+buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        showSection(btn.dataset.tool);
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+// Home page buttons
+homeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        showSection(btn.dataset.tool);
+        const sBtn = document.querySelector(`.category-btn[data-tool="${btn.dataset.tool}"]`);
+        if (sBtn) sBtn.classList.add('active');
+    });
+});
+
+// Home button circle
+homeBtnCircle.addEventListener('click', () => {
+    showSection('home');
+    buttons.forEach(b => b.classList.remove('active'));
+});
+
+// ===== HELPER FUNCTION FOR SENDING REQUEST =====
+async function sendToBackend(text, mode, tone=null) {
+    if(!text) return "Please enter some text!";
+    try {
+        const response = await fetch("https://supreme-sniffle-x5pqj966g979f6wpx-3000.app.github.dev/api/fix-text", { // replace with your deployed backend URL
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, mode, tone })
+        });
+        const data = await response.json();
+        return data.result || "No response from AI";
+    } catch(err) {
+        console.error(err);
+        return "Error: Could not process text.";
+    }
+}
+
+// ===== FORMAT TOOL =====
+const rewriteBtn = document.getElementById("rewriteBtn");
+const formatInput = document.getElementById("formatInput");
+const formatOutput = document.getElementById("formatOutput");
+const toneSelect = document.getElementById("toneSelect");
+
+rewriteBtn.addEventListener("click", async () => {
+    formatOutput.textContent = "Processing...";
+    const text = formatInput.value.trim();
+    const tone = toneSelect.value;
+    formatOutput.textContent = await sendToBackend(text, "format", tone);
+});
+
+// ===== CLEAN TOOL =====
+const cleanSection = document.querySelector("#clean");
+const cleanInput = cleanSection.querySelector("textarea");
+const cleanBtn = cleanSection.querySelector("button");
+const cleanOutput = cleanSection.querySelector(".output");
+
+cleanBtn.addEventListener("click", async () => {
+    cleanOutput.textContent = "Processing...";
+    const text = cleanInput.value.trim();
+    cleanOutput.textContent = await sendToBackend(text, "clean");
+});
+
+// ===== AI CHECK PASS TOOL =====
+const aiSection = document.querySelector("#ai");
+const aiInput = aiSection.querySelector("textarea");
+const aiBtn = aiSection.querySelector("button");
+const aiOutput = aiSection.querySelector(".output");
+
+aiBtn.addEventListener("click", async () => {
+    aiOutput.textContent = "Processing...";
+    const text = aiInput.value.trim();
+    aiOutput.textContent = await sendToBackend(text, "ai");
+});
+</script>
+
+</body>
+</html>
